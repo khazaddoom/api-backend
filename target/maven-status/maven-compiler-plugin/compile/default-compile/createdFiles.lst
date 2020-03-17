@@ -1,4 +1,5 @@
 com/juego/learning/MessagingConfig.class
+com/juego/learning/pojos/MongoUtils.class
 com/juego/learning/Config.class
 com/juego/learning/MessagingApplication.class
 com/juego/learning/Message.class

@@ -5,6 +5,14 @@ public class CustomResponse {
 	String status;
 	String message;
 	String statusCode;
+	Object data;
+	
+	public Object getData() {
+		return data;
+	}
+	public void setData(Object data) {
+		this.data = data;
+	}
 	public String getStatus() {
 		return status;
 	}
