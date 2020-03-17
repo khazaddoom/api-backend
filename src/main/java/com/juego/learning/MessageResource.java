@@ -3,6 +3,8 @@ package com.juego.learning;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +20,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.log4j.Logger;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
@@ -36,6 +39,8 @@ import com.mongodb.client.MongoDatabase;
 @Produces(MediaType.APPLICATION_JSON)
 public class MessageResource {
 	
+	static final Logger logger = Logger.getLogger(MessageResource.class);
+	
 	private final int maxNumberOfMessages;
     private final HashMap<String, List<Message>> map = new HashMap<>();
     private final AtomicLong counter;
@@ -53,14 +58,23 @@ public class MessageResource {
     	CustomResponse response = new CustomResponse();
     	response.setStatus("OK");
     	response.setStatusCode("200");
-    	response.setMessage("1 Row inserted successfully");
+    	
     	
     	es.submit(() -> {
+    		
+    		Instant start = Instant.now();
+    		
             try {
                 this.doMongoDbthings();
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            
+            Instant end = Instant.now();
+            Duration between = Duration.between(start, end);
+            
+            response.setMessage("1000 Rows inserted successfully in " + between.toMillis() + " milliseconds!");
+            
             ar.resume(response);
             es.shutdown();
         });
@@ -70,11 +84,12 @@ public class MessageResource {
     
     private void doMongoDbthings() {
     	
+    	logger.info("********************************=> async stuff starting"); 
+    	
     	CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
                 fromProviders(PojoCodecProvider.builder().automatic(true).build()));
 		
 //		MongoClient mongoClient = new MongoClient("localhost", MongoClientSettings.builder().codecRegistry(pojoCodecRegistry).build());
-		
 		
 		MongoCredential credentials = MongoCredential.createCredential(
                 "admin",
@@ -115,8 +130,9 @@ public class MessageResource {
 			list.add(a);
 		}
 		
-		
-		insertDocumentToMongo(collection, list);
+		for(int index=0; index<1000; index++) {
+			insertDocumentToMongo(collection, list);	
+		}
 		
 		
 		mongoClient.close();
@@ -137,5 +153,10 @@ public class MessageResource {
 			return insertedRowCount;
 		}		
 	}
+    
+//    @GET
+//    @Path
+//    public void retrieve(@Suspended final AsyncResponse ar) {
+    
     
 }
